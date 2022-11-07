@@ -1,0 +1,29 @@
+conda install -c anaconda cmake
+conda install -c conda-forge clang-format
+conda install -c anaconda libffi
+
+Building Flashlight: (installing to ~/.local instead of ~/usr) In parent directory of flashlight
+git clone --recursive --depth 1 https://github.com/flashlight/flashlight.git
+cd flashlight
+mkdir -p build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DFL_ARRAYFIRE_USE_CPU=ON -DFL_ARRAYFIRE_USE_CUDA=OFF -DFL_BUILD_DISTRIBUTED=OFF -DFL_USE_ONEDNN=OFF -DFL_BUILD_TESTS=OFF -DFL_BUILD_EXAMPLES=OFF -DFL_BUILD_SCRIPTS=OFF -DCMAKE_INSTALL_PREFIX="$HOME"/.local
+make -j"$(getconf _NPROCESSORS_ONLN)"
+make install
+
+Building Flashlight bindings for Shumai: In parent directory of shumai
+cd shumai
+mkdir -p build
+cd build
+cmake .. -Dflashlight_DIR="$HOME"/.local/share/flashlight/cmake/
+make -j"$(getconf _NPROCESSORS_ONLN)"
+
+Each time: In build directory of shumai
+cmake .. -Dflashlight_DIR="$HOME"/.local/share/flgashlight/cmake/
+make -j"$(getconf _NPROCESSORS_ONLN)"
+
+Generate bindings: In root directory of shumai
+source scripts/gen_all_binding.sh
+
+Build, gen and test: In root directory of shumai
+source scripts/gen_all_binding.sh && cd build && make -j"$(getconf _NPROCESSORS_ONLN)" && cd .. && bun wiptest
